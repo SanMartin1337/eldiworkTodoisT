@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EldiWork</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f0ece6;
+            background-image:
+                    repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(108,92,231,0.05) 49px, rgba(108,92,231,0.05) 50px),
+                    repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(108,92,231,0.03) 49px, rgba(108,92,231,0.03) 50px),
+                    linear-gradient(135deg, #e8e0f0 0%, #e0e8f5 30%, #f5ece0 60%, #ece0f0 100%);
+            background-attachment: fixed;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .page-wrapper {
+            flex: 1;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1300px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .content-area {
+            flex: 1;
+            max-width: 900px;
+            background: rgba(255,255,255,0.75);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .side-panel {
+            width: 300px;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.75);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .header-title {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+
+        .card-custom {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(8px);
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: all 0.2s ease;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        .badge-priority {
+            font-size: 11px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-high { background: #ffe0e0; color: #c0392b; }
+        .badge-medium { background: #fff3cd; color: #b8860b; }
+        .badge-low { background: #d4edda; color: #155724; }
+
+        .badge-project {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #e8e0f5;
+            color: #6c5ce7;
+            font-weight: 500;
+        }
+
+        .btn-glass {
+            backdrop-filter: blur(4px);
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-glass:hover {
+            transform: scale(1.05);
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.8);
+        }
+
+        .datetime-input {
+            min-width: 180px;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .planner-table {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            overflow: hidden;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .planner-table th {
+            background: rgba(108,92,231,0.08);
+            font-weight: 600;
+            color: #555;
+            padding: 10px 12px;
+            border-bottom: 2px solid rgba(108,92,231,0.15);
+            border-right: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .planner-table th:last-child { border-right: none; }
+
+        .planner-table td {
+            padding: 10px 12px;
+            vertical-align: top;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            border-right: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .planner-table td:last-child { border-right: none; }
+
+        .planner-table tr:last-child td { border-bottom: none; }
+
+        .planner-table tr:first-child th:first-child { border-top-left-radius: 16px; }
+        .planner-table tr:first-child th:last-child { border-top-right-radius: 16px; }
+        .planner-table tr:last-child td:first-child { border-bottom-left-radius: 16px; }
+        .planner-table tr:last-child td:last-child { border-bottom-right-radius: 16px; }
+
+        .day-header {
+            font-weight: 700;
+            color: #6c5ce7;
+            min-width: 80px;
+        }
+
+        .day-date {
+            font-size: 11px;
+            color: #999;
+            font-weight: 400;
+        }
+
+        .task-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .task-badge {
+            font-size: 12px;
+            font-weight: 500;
+            white-space: normal;
+            word-break: break-word;
+            text-align: left;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .project-list, .status-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            text-decoration: none;
+            color: #555;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: rgba(108,92,231,0.08);
+        }
+
+        .filter-btn.active {
+            background: #6c5ce7;
+            color: white !important;
+        }
+
+        .task-mini {
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            background: rgba(255,255,255,0.6);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-row {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @media (max-width: 1000px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .side-panel {
+                width: 100%;
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="page-wrapper">
+
+    <div class="main-container">
+
+        <!-- Основной контент -->
+        <div class="content-area">
+            <div class="header-title d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <h1 class="m-0" style="font-weight: 700; color: #4a4a6a;">
+                    <i class="bi bi-journal-check" style="color: #6c5ce7;"></i> EldiWork
+                </h1>
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge rounded-pill fs-6" style="background: rgba(108,92,231,0.15); color: #6c5ce7;">
+                        📋 Всего: <span th:text="${#lists.size(tasks)}">0</span>
+                    </span>
+                    <span class="badge rounded-pill fs-6" style="background: rgba(243,156,18,0.15); color: #b8860b;">
+                        ⚡ Активных: <span th:text="${#lists.size(tasks.?[status != 'DONE'])}">0</span>
+                    </span>
+                    <span class="badge rounded-pill fs-6" style="background: rgba(39,174,96,0.15); color: #155724;">
+                        ✅ Выполнено: <span th:text="${#lists.size(tasks.?[status == 'DONE'])}">0</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Форма -->
+            <div class="card-custom p-3 mb-4">
+                <form th:action="@{/tasks}" method="post" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">Задача</label>
+                        <input type="text" name="description" class="form-control" placeholder="Что нужно сделать?" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Приоритет</label>
+                        <select name="priority" class="form-select">
+                            <option value="LOW">🟢 Низкий</option>
+                            <option value="MEDIUM" selected>🟡 Средний</option>
+                            <option value="HIGH">🔴 Высокий</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Проект</label>
+                        <input type="text" name="projectName" class="form-control" placeholder="Проект" list="projectList" value="Общие">
+                        <datalist id="projectList">
+                            <option th:each="project : ${projects}" th:value="${project.name}">
+                        </datalist>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Дата и время</label>
+                        <input type="datetime-local" name="dueDate" class="form-control datetime-input">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100 btn-glass" style="background: #6c5ce7; border: none;">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Таблица-планнер -->
+            <div class="card-custom p-3 mb-4">
+                <h5 class="mb-3" style="color: #4a4a6a; font-weight: 600;">
+                    <i class="bi bi-calendar-week" style="color: #6c5ce7;"></i> План на ближайшие дни
+                </h5>
+                <div class="table-responsive">
+                    <table class="table planner-table mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width: 14%;">День</th>
+                            <th style="width: 46%;">Задачи</th>
+                            <th style="width: 20%;">Проект</th>
+                            <th style="width: 20%;">Статус</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>
+                                <div class="day-header"> Сегодня</div>
+                                <div class="day-date" th:text="${#temporals.format(today, 'dd.MM.yyyy')}"></div>
+                            </td>
+                            <td>
+                                <div class="task-cell">
+                                    <div th:each="task : ${tasksToday}">
+                                        <span class="badge rounded-pill px-2 py-1 task-badge"
+                                              th:style="'background:' + (${task.priority == 'HIGH'} ? '#ffe0e0' : (${task.priority == 'MEDIUM'} ? '#fff3cd' : '#d4edda')) + '; color:' + (${task.priority == 'HIGH'} ? '#c0392b' : (${task.priority == 'MEDIUM'} ? '#b8860b' : '#155724'))"
+                                              th:text="${task.description}">Задача</span>
+                                    </div>
+                                    <span th:if="${#lists.isEmpty(tasksToday)}" class="text-muted small">—</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="project-list">
+                                    <div th:each="task : ${tasksToday}">
+                                        <span th:if="${task.projectId != null && projectMap.containsKey(task.projectId)}"
+                                              class="badge-project"
+                                              th:text="${projectMap[task.projectId].name}"></span>
+                                        <span th:if="${task.projectId == null}" class="text-muted small">—</span>
+                                    </div>
+                                    <span th:if="${#lists.isEmpty(tasksToday)}" class="text-muted small">—</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="status-list">
+                                    <div th:each="task : ${tasksToday}">
+                                        <span class="badge rounded-pill"
+                                              th:classappend="${task.status == 'DONE'} ? 'bg-success' : 'bg-warning text-dark'"
+                                              th:text="${task.status == 'DONE'} ? '✅' : '⚡'"
+                                              style="font-size: 11px;"></span>
+                                    </div>
+                                    <span th:if="${#lists.isEmpty(tasksToday)}" class="text-muted small">—</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="day-header"> Завтра</div>
+                                <div class="day-date" th:text="${#temporals.format(tomorrow, 'dd.MM.yyyy')}"></div>
+                            </td>
+                            <td>
+                                <div class="task-cell">
+                                    <div th:each="task : ${tasksTomorrow}">
+                                        <span class="badge rounded-pill px-2 py-1 task-badge"
+                                              th:style="'background:' + (${task.priority == 'HIGH'} ? '#ffe0e0' : (${task.priority == 'MEDIUM'} ? '#fff3cd' : '#d4edda')) + '; color:' + (${task.priority == 'HIGH'} ? '#c0392b' : (${task.priority == 'MEDIUM'} ? '#b8860b' : '#155724'))"
+                                              th:text="${task.description}">Задача</span>
+                                    </div>
+                                    <span th:if="${#lists.isEmpty(tasksTomorrow)}" class="text-muted small">—</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="project-list">
+                                    <div th:each="task : ${tasksTomorrow}">
+                                        <span th:if="${task.projectId != null && projectMap.containsKey(task.projectId)}"
+                                              class="badge-project"
+                                              th:text="${projectMap[task.projectId].name}"></span>
+                                        <span th:if="${task.projectId == null}" class="text-muted small">—</span>
+                                    </div>
+                                    <span th:if="${#lists.isEmpty(tasksTomorrow)}" class="text-muted small">—</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="status-list">
+                                    <div th:each="task : ${tasksTomorrow}">
+                                        <span class="badge rounded-pill"
+                                              th:classappend="${task.status == 'DONE'} ? 'bg-success' : 'bg-warning text-dark'"
+                                              th:text="${task.status == 'DONE'} ? '✅' : '⚡'"
+                                              style="font-size: 11px;"></span>
+                                    </div>
+                                    <span th:if="${#lists.isEmpty(tasksTomorrow)}" class="text-muted small">—</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="day-header"> Послезавтра</div>
+                                <div class="day-date" th:text="${#temporals.format(afterTomorrow, 'dd.MM.yyyy')}"></div>
+                            </td>
+                            <td>
+                                <div class="task-cell">
+                                    <div th:each="task : ${tasksAfterTomorrow}">
+                                        <span class="badge rounded-pill px-2 py-1 task-badge"
+                                              th:style="'background:' + (${task.priority == 'HIGH'} ? '#ffe0e0' : (${task.priority == 'MEDIUM'} ? '#fff3cd' : '#d4edda')) + '; color:' + (${task.priority == 'HIGH'} ? '#c0392b' : (${task.priority == 'MEDIUM'} ? '#b8860b' : '#155724'))"
+                                              th:text="${task.description}">Задача</span>
+                                    </div>
+                                    <span th:if="${#lists.isEmpty(tasksAfterTomorrow)}" class="text-muted small">—</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="project-list">
+                                    <div th:each="task : ${tasksAfterTomorrow}">
+                                        <span th:if="${task.projectId != null && projectMap.containsKey(task.projectId)}"
+                                              class="badge-project"
+                                              th:text="${projectMap[task.projectId].name}"></span>
+                                        <span th:if="${task.projectId == null}" class="text-muted small">—</span>
+                                    </div>
+                                    <span th:if="${#lists.isEmpty(tasksAfterTomorrow)}" class="text-muted small">—</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="status-list">
+                                    <div th:each="task : ${tasksAfterTomorrow}">
+                                        <span class="badge rounded-pill"
+                                              th:classappend="${task.status == 'DONE'} ? 'bg-success' : 'bg-warning text-dark'"
+                                              th:text="${task.status == 'DONE'} ? '✅' : '⚡'"
+                                              style="font-size: 11px;"></span>
+                                    </div>
+                                    <span th:if="${#lists.isEmpty(tasksAfterTomorrow)}" class="text-muted small">—</span>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Все задачи -->
+            <h5 class="mb-3" style="color: #4a4a6a; font-weight: 600;">
+                <i class="bi bi-list-ul" style="color: #6c5ce7;"></i> Все задачи
+            </h5>
+
+            <div th:each="task : ${tasks}" class="task-row">
+                <div class="card-custom p-3 mb-2 d-flex justify-content-between align-items-center"
+                     th:classappend="${task.status == 'DONE'} ? 'opacity-50' : ''">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge-priority"
+                              th:classappend="${task.priority == 'HIGH'} ? 'badge-high' : (${task.priority == 'MEDIUM'} ? 'badge-medium' : 'badge-low')"
+                              th:text="${task.priority}">MEDIUM</span>
+                        <span th:text="${task.description}"
+                              th:style="${task.status == 'DONE'} ? 'text-decoration: line-through;' : ''"
+                              style="font-weight: 500; color: #333;">Описание</span>
+                        <span th:if="${task.projectId != null && projectMap.containsKey(task.projectId)}"
+                              class="badge-project"
+                              th:text="${projectMap[task.projectId].name}"></span>
+                        <small style="color: #999;" th:if="${task.dueDate}">
+                            <i class="bi bi-calendar3"></i>
+                            <span th:text="${#temporals.format(task.dueDate, 'dd.MM.yyyy HH:mm')}"></span>
+                        </small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a th:if="${task.status != 'DONE'}" th:href="@{/tasks/{id}/complete(id=${task.id})}"
+                           class="btn btn-sm btn-outline-success btn-glass" title="Выполнено">
+                            <i class="bi bi-check-lg"></i>
+                        </a>
+                        <a th:href="@{/tasks/{id}/delete(id=${task.id})}"
+                           class="btn btn-sm btn-outline-danger btn-glass" title="Удалить">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(tasks)}" class="text-center py-5">
+                <i class="bi bi-inbox display-1" style="color: #ddd;"></i>
+                <p class="text-muted mt-3">Пока задач нет. Добавь первую!</p>
+            </div>
+        </div>
+
+        <!-- Боковая панель -->
+        <div class="side-panel">
+            <h6 style="color: #4a4a6a; font-weight: 600; margin-bottom: 15px;">
+                <i class="bi bi-funnel" style="color: #6c5ce7;"></i> Фильтр задач
+            </h6>
+
+            <a th:href="@{/(filter='all')}" class="filter-btn" th:classappend="${currentFilter == 'all' && selectedProjectId == null} ? 'active' : ''">📋 Все</a>
+            <a th:href="@{/(filter='active')}" class="filter-btn" th:classappend="${currentFilter == 'active'} ? 'active' : ''">⚡ Активные</a>
+            <a th:href="@{/(filter='done')}" class="filter-btn" th:classappend="${currentFilter == 'done'} ? 'active' : ''">✅ Выполненные</a>
+
+            <hr style="margin: 15px 0;">
+
+            <h6 style="color: #4a4a6a; font-weight: 600; margin-bottom: 10px;">
+                <i class="bi bi-folder" style="color: #6c5ce7;"></i> Поиск по проекту
+            </h6>
+
+            <form th:action="@{/}" method="get" class="mb-3">
+                <select name="projectId" class="form-select" onchange="this.form.submit()">
+                    <option value="">Все проекты</option>
+                    <option th:each="project : ${projects}"
+                            th:value="${project.id}"
+                            th:text="${project.name}"
+                            th:selected="${selectedProjectId != null && selectedProjectId == project.id}"></option>
+                </select>
+            </form>
+
+            <hr style="margin: 15px 0;">
+
+            <div th:each="task : ${tasks}">
+                <div class="task-mini">
+                    <span class="badge rounded-pill" style="font-size: 10px;"
+                          th:classappend="${task.priority == 'HIGH'} ? 'bg-danger' : (${task.priority == 'MEDIUM'} ? 'bg-warning text-dark' : 'bg-success')"
+                          th:text="${task.priority}"></span>
+                    <span th:text="${task.description}" style="font-weight: 500;"></span>
+                    <span th:if="${task.projectId != null && projectMap.containsKey(task.projectId)}"
+                          class="badge-project d-inline-block mt-1"
+                          th:text="${projectMap[task.projectId].name}"></span>
+                    <small class="d-block text-muted" th:if="${task.dueDate}"
+                           th:text="'🕒 ' + ${#temporals.format(task.dueDate, 'dd.MM HH:mm')}"></small>
+                </div>
+            </div>
+            <div th:if="${#lists.isEmpty(tasks)}" class="text-muted small text-center py-2">Нет задач</div>
+        </div>
+    </div>
+
+</div>
+<!-- Конец  -->
+
+
+<footer style="width: 100%; padding: 20px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); border-top: 1px solid rgba(108,92,231,0.1);">
+    <div style="max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <h5 style="color: #4a4a6a; font-weight: 700; margin-bottom: 5px;">
+                <i class="bi bi-pencil-square" style="color: #6c5ce7;"></i> EldiWork
+            </h5>
+            <p style="color: #888; font-size: 14px; margin: 0;">
+                Студент и его pet-проекты
+            </p>
+        </div>
+        <div>
+            <h6 style="color: #4a4a6a; font-weight: 600; margin-bottom: 10px;">Сведения обо мне</h6>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="https://t.me/makro1337" target="_blank"
+                   style="display: flex; align-items: center; gap: 8px; text-decoration: none;
+                          background: #e8e0f5; color: #6c5ce7; padding: 10px 18px;
+                          border-radius: 12px; font-weight: 500; transition: all 0.2s;"
+                   onmouseover="this.style.background='#6c5ce7'; this.style.color='white';"
+                   onmouseout="this.style.background='#e8e0f5'; this.style.color='#6c5ce7';">
+                    <i class="bi bi-telegram" style="font-size: 20px;"></i> Telegram
+                </a>
+                <a href="https://github.com/SanMartin1337" target="_blank"
+                   style="display: flex; align-items: center; gap: 8px; text-decoration: none;
+                          background: #e8e0f5; color: #6c5ce7; padding: 10px 18px;
+                          border-radius: 12px; font-weight: 500; transition: all 0.2s;"
+                   onmouseover="this.style.background='#6c5ce7'; this.style.color='white';"
+                   onmouseout="this.style.background='#e8e0f5'; this.style.color='#6c5ce7';">
+                    <i class="bi bi-github" style="font-size: 20px;"></i> GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
