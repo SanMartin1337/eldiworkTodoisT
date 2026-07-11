@@ -1,8 +1,11 @@
 {
+  "buildCommand": "mvn clean package -DskipTests",
+  "outputDirectory": "target",
+  "installCommand": "mvn install -DskipTests",
   "builds": [
     {
-      "src": "pom.xml",
-      "use": "@vercel/java"
+      "src": "target/*.jar",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
